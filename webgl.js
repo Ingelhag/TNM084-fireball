@@ -77,7 +77,7 @@ function initShaders(vs_id, fs_id) {
   shaderProgram.uYrot = gl.getUniformLocation(shaderProgram, "uYrot");
   shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, "uSampler");
   shaderProgram.uDims = gl.getUniformLocation(shaderProgram, "uDims");
-  // shaderProgram.uTime = gl.getUniformLocation(shaderProgram, "uTime");
+  shaderProgram.uTime = gl.getUniformLocation(shaderProgram, "uTime");
 }
 
 
