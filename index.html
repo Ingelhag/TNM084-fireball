@@ -272,8 +272,8 @@
             vec3 toFireColor(float n) {
 
                 float red = n;
-                float green = n*2.0-1.0;
-                float blue = n*3.0-2.0;
+                float green = (n*2.0-1.0);
+                float blue = (n*3.0-2.0);
 
                 return vec3(red,green,blue);
             }
@@ -284,11 +284,11 @@
 
                 float n = 0.0;
                 n += (1.0/2.0)      * abs(snoise(vec4(4.0*st.x,     1.0*st.y-1.0*t, 1.0*st.z, t*0.5)));
-                n += (1.0/4.0)      * abs(snoise(vec4(8.0*st.x,     2.0*st.y-2.0*t, 2.0*st.z, t*0.5)));
-                n += (1.0/8.0)      * abs(snoise(vec4(16.0*st.x,    3.0*st.y-4.0*t, 4.0*st.z, t*0.5)));
-                n += (1.0/16.0)     * abs(snoise(vec4(32.0*st.x,    4.0*st.y-5.0*t, 8.0*st.z, t*0.5)));
+                n += (1.0/4.0)      * abs(snoise(vec4(8.0*st.x,     1.0*st.y-1.0*t, 2.0*st.z, t*0.5)));
+                n += (1.0/8.0)      * abs(snoise(vec4(16.0*st.x,    2.0*st.y-2.0*t, 4.0*st.z, t*0.5)));
+                n += (1.0/16.0)     * abs(snoise(vec4(32.0*st.x,    3.0*st.y-3.0*t, 8.0*st.z, t*0.5)));
 
-                n *= sqrt(2.0 - st.y);
+                n *= sqrt(2.0 - st.y+0.5);
                 alpha = (n < 0.3)?0.0:alpha;
 
                 //gl_FragColor = vec4(n,n,n, 0.5);
@@ -525,11 +525,7 @@
                 n +=  (1.0/8.0) * abs(srdnoise(vec2(8.0*st.x, 8.0*st.y-0.4*t), 0.1*t, gradient)); 
 
                 n *= sqrt(3.0 - st.y);
-                n *= sin(st.x*srdnoise(st.xy, 0.1*t, gradient)*5.0);
-                // n *= (2.5 - abs(2.5-st.x));
-                // n *= sqrt(4.0 - abs(st.z-2.0));
-
-                //alpha = (n < 0.1)?0.0:alpha;
+                n *= cos(st.x*srdnoise(vec2(st.x*1.0, st.y*1.0), 0.1*t, gradient)*6.0);
 
                 gl_FragColor = vec4(n,n,n, alpha);
             }
@@ -796,7 +792,7 @@
                 /* 
                  *   Create a inner sphere
                  */
-                var geometry = new THREE.SphereGeometry( 2.5, 500, 500 );
+                var geometry = new THREE.SphereGeometry( 2.8, 500, 500 );
                 // Set material for the inner sphere
                 var shaderMaterial =
                   new THREE.ShaderMaterial({
@@ -820,16 +816,28 @@
                     vertexShader:   document.getElementById('fireVertexshader').innerHTML,
                     fragmentShader: document.getElementById('fireFragmentshader').innerHTML,
                     transparent: true,
-                    depthTest: false,
-                    depthTest: false,
-                    side: THREE.DoubleSide
+                    blending: THREE['AdditiveBlending']
                   });
-                var geometry = new THREE.SphereGeometry( 3.0, 200, 20, 2.3, 6.3, 0 );
-                fireball = new THREE.Mesh(geometry, fireMaterial);
-                fireball.position.x = 0;
-                fireball.position.y = -1.5;
-                fireball.position.z = 0;
-                scene.add( fireball );
+                var geometryFireball1 = new THREE.SphereGeometry( 3.0, 200, 20);
+                var fireball1 = new THREE.Mesh(geometryFireball1, fireMaterial);
+                fireball1.position.x = 0;
+                fireball1.position.y = -1.5;
+                fireball1.position.z = 0;
+                scene.add( fireball1 );
+
+                var geometryFireball2 = new THREE.SphereGeometry( 3.1, 200, 20);
+                var fireball2 = new THREE.Mesh(geometryFireball2, fireMaterial);
+                fireball2.position.x = 0;
+                fireball2.position.y = -1.5;
+                fireball2.position.z = 0;
+                scene.add( fireball2 );
+
+                var geometryFireball3 = new THREE.SphereGeometry( 3.2, 200, 20);
+                var fireball3 = new THREE.Mesh(geometryFireball3, fireMaterial);
+                fireball3.position.x = 0;
+                fireball3.position.y = -1.5;
+                fireball3.position.z = 0;
+                scene.add( fireball3 );
 
                 /*
                 *   Cylinders WITH SMOKE
@@ -843,23 +851,10 @@
                     side: THREE.DoubleSide,
                   });
 
-                var planeGeometry1 = new THREE.PlaneGeometry( 5, 10, 32 );
+                var planeGeometry1 = new THREE.PlaneGeometry( 6, 10, 32 );
                 var plane1 = new THREE.Mesh( planeGeometry1, smokeShader );
                 plane1.position.y=2;
                 scene.add( plane1 );
-
-                // var planeGeometry1 = new THREE.PlaneGeometry( 5.5, 10, 32 );
-                // var plane1 = new THREE.Mesh( planeGeometry1, smokeShader );
-                // plane1.position.y=2;
-                // plane1.position.z=1;
-                // scene.add( plane1 );
-
-                // var planeGeometry1 = new THREE.PlaneGeometry( 6, 10, 32 );
-                // var plane1 = new THREE.Mesh( planeGeometry1, smokeShader );
-                // plane1.position.y=3;
-                // plane1.position.z=2;
-                // scene.add( plane1 );
-
 
                 /*
                 *   LIGHTS
