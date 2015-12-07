@@ -407,6 +407,15 @@
                 return 40.0 * (n.x + n.y + n.z);
             }    
 
+
+            float clamps(float value, float minValue, float maxValue) {
+                return max(minValue, min(value, maxValue));
+            }
+            float smoothsteps(float edge0, float edge1, float value) {
+                float t = clamps((value - edge0) / (edge1 - edge0), 0.0, 1.0);
+                return t * t * (3.0 - 2.0 * t);
+            }
+
             void main() {
                 float t = time;
                 float alpha = 0.1;
@@ -421,6 +430,9 @@
 
                 n *= sqrt(3.0 - st.y);
                 n *= cos(st.x*srdnoise(vec2(st.x*1.0, st.y*1.0), 0.1*t, gradient)*6.0);
+
+                n *= smoothsteps(3.0, 1.7, st.x);
+                n *= smoothsteps(-2.0, -1.5, st.x);
 
                 gl_FragColor = vec4(n,n,n, alpha);
             }
@@ -712,7 +724,8 @@
                     vertexShader:   document.getElementById('fireVertexshader').innerHTML,
                     fragmentShader: document.getElementById('fireFragmentshader').innerHTML,
                     transparent: true,
-                    blending: THREE['AdditiveBlending']
+                    blending: THREE['AdditiveBlending'],
+                    //depthTest: false,
                   });
                 var geometryFireball1 = new THREE.SphereGeometry( 3.0, 200, 20);
                 var fireball1 = new THREE.Mesh(geometryFireball1, fireMaterial);
@@ -750,6 +763,7 @@
                 var planeGeometry1 = new THREE.PlaneGeometry( 6, 15, 32 );
                 var plane1 = new THREE.Mesh( planeGeometry1, smokeShader );
                 plane1.position.y=5;
+                plane1.position.z=-3;
                 scene.add( plane1 );
 
                 /*
