@@ -10,7 +10,7 @@
         <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
         <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.min.js"></script>
-        <script src="TrackballControls.js"></script>
+        <script src="stats.min.js"></script>
         <script src="OrbitControls.js"></script>
 
         <!-- Shaders -->
@@ -423,16 +423,16 @@
                 vec3 color = vec3(0.0,0.0,0.0);
 
                 float n = 0.0;
-                n +=  (1.0/1.0) * abs(srdnoise(vec2(1.0*st.x, 1.0*st.y-0.4*t), 0.1*t, gradient));
-                n +=  (1.0/2.0) * abs(srdnoise(vec2(2.0*st.x, 2.0*st.y-0.4*t), 0.1*t, gradient));
-                n +=  (1.0/4.0) * abs(srdnoise(vec2(4.0*st.x, 4.0*st.y-0.4*t), 0.1*t, gradient));
-                n +=  (1.0/8.0) * abs(srdnoise(vec2(8.0*st.x, 8.0*st.y-0.4*t), 0.1*t, gradient)); 
 
-                n *= sqrt(3.0 - st.y);
-                n *= cos(st.x*srdnoise(vec2(st.x*1.0, st.y*1.0), 0.1*t, gradient)*6.0);
+                n +=  (1.0/1.0) * abs(srdnoise(vec2(2.0*st.x, 1.0*(st.y-0.2*t)), 0.1*t, gradient));
+                n +=  (1.0/2.0) * abs(srdnoise(vec2(4.0*st.x, 2.0*(st.y-0.4*t)), 0.2*t, gradient));
+                n +=  (1.0/4.0) * abs(srdnoise(vec2(8.0*st.x, 4.0*(st.y-0.8*t)), 0.4*t, gradient));
+                n +=  (1.0/8.0) * abs(srdnoise(vec2(16.0*st.x, 8.0*(st.y-1.6*t)), 0.8*t, gradient)); 
 
-                n *= smoothsteps(3.0, 1.7, st.x);
-                n *= smoothsteps(-2.0, -1.5, st.x);
+                n *= sqrt(3.6 - st.y);
+                n *= cos(st.x*srdnoise(vec2(st.x*1.0, st.y*1.0), 0.1*t, gradient)*3.0);
+
+                n *= smoothsteps(3.0, 1.7, st.x) * smoothsteps(-3.0, -1.5, st.x);
 
                 gl_FragColor = vec4(n,n,n, alpha);
             }
@@ -659,15 +659,25 @@
 
         <script>
             var scene, camera, renderer, fireball, plane, uniform, controls;
-            var container;
+            var container, stats;
 
             init();
             animate();
 
             function init() {
 
+                stats = new Stats();
+                stats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
+
+                // align top-left
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+
+
                 container = document.createElement( 'div' );
                 document.body.appendChild( container );
+                document.body.appendChild( stats.domElement ); 
 
                 /*
                  * Create the scene and set spec.
@@ -727,26 +737,26 @@
                     blending: THREE['AdditiveBlending'],
                     //depthTest: false,
                   });
-                var geometryFireball1 = new THREE.SphereGeometry( 3.0, 200, 20);
-                var fireball1 = new THREE.Mesh(geometryFireball1, fireMaterial);
-                fireball1.position.x = 0;
-                fireball1.position.y = -0.5;
-                fireball1.position.z = 0;
-                scene.add( fireball1 );
+                // var geometryFireball1 = new THREE.SphereGeometry( 3.0, 200, 20);
+                // var fireball1 = new THREE.Mesh(geometryFireball1, fireMaterial);
+                // fireball1.position.x = 0;
+                // fireball1.position.y = -0.5;
+                // fireball1.position.z = 0;
+                // scene.add( fireball1 );
 
-                var geometryFireball2 = new THREE.SphereGeometry( 3.1, 200, 20);
-                var fireball2 = new THREE.Mesh(geometryFireball2, fireMaterial);
-                fireball2.position.x = 0;
-                fireball2.position.y = -0.5;
-                fireball2.position.z = 0;
-                scene.add( fireball2 );
+                // var geometryFireball2 = new THREE.SphereGeometry( 3.1, 200, 20);
+                // var fireball2 = new THREE.Mesh(geometryFireball2, fireMaterial);
+                // fireball2.position.x = 0;
+                // fireball2.position.y = -0.5;
+                // fireball2.position.z = 0;
+                // scene.add( fireball2 );
 
-                var geometryFireball3 = new THREE.SphereGeometry( 3.2, 200, 20);
-                var fireball3 = new THREE.Mesh(geometryFireball3, fireMaterial);
-                fireball3.position.x = 0;
-                fireball3.position.y = -0.5;
-                fireball3.position.z = 0;
-                scene.add( fireball3 );
+                // var geometryFireball3 = new THREE.SphereGeometry( 3.2, 200, 20);
+                // var fireball3 = new THREE.Mesh(geometryFireball3, fireMaterial);
+                // fireball3.position.x = 0;
+                // fireball3.position.y = -0.5;
+                // fireball3.position.z = 0;
+                // scene.add( fireball3 );
 
                 /*
                 *   Cylinders WITH SMOKE
@@ -793,8 +803,10 @@
             }
 
             function render() {
+                stats.begin();
                 uniform.time.value += 0.03;
                 renderer.render( scene, camera );
+                stats.end();
             }
 
         </script>
