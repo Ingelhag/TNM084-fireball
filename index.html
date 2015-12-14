@@ -28,7 +28,7 @@
                 <h3>Control Panel</h3>
                 <div style="text-align:center;">
                     <p>Flames</p>
-                    <input type="range" id="flames" min="-5.0" max="5.0" step="0.1">
+                    <input type="range" id="flames" min="0" max="2.0" step="0.01">
                 </div>
             </div>
             <div class="col-md-10" id="fireball" style="height:640; width:640;">
@@ -45,7 +45,6 @@
             varying vec3 st;
             uniform float time;
             uniform float flames;
-            uniform float snWind; 
 
             //
             // Description : Array and textureless GLSL 2D/3D/4D simplex 
@@ -163,22 +162,27 @@
                 float displacement = 0.0;
                 float t = time;
 
-                displacement += (1.0/2.0) * snoise(vec3(0.25    * (position.x + t*0.2), 0.5  * (position.y + t*0.5), 0.25 * position.z));
-                displacement += (1.0/4.0) * snoise(vec3(0.5     * (position.x + t*0.2), 1.0  * (position.y + t*0.5), 0.5 * position.z));
-                displacement += (1.0/8.0) * snoise(vec3(1.0     * (position.x + t*0.2), 2.0  * (position.y + t*0.5), 1.0 * position.z));
-                displacement += (1.0/16.0) * snoise(vec3(2.0    * (position.x + t*0.2), 4.0  * (position.y + t*0.5), 2.0 * position.z));
-                displacement += (1.0/32.0) * snoise(vec3(4.0    * (position.x + t*0.2), 8.0  * (position.y + t*0.5), 4.0 * position.z));
+                displacement += (1.0/2.0) * snoise(vec3(0.25 * (position.x + t*0.5),    0.5  * (position.y - t*0.5),    0.25 * (position.z + t*0.5)));
+                displacement += (1.0/4.0) * snoise(vec3(0.5 * (position.x + t*0.5),     1.0  * (position.y - t*0.5),    0.5 * (position.z + t*0.5)));
+                displacement += (1.0/8.0) * snoise(vec3(1.0 * (position.x + t*0.75),    2.0  * (position.y - t*0.75),   1.0 * (position.z + t*0.75)));
+                displacement += (1.0/16.0) * snoise(vec3(2.0 * (position.x + t*0.75),   4.0  * (position.y - t*0.75),   2.0 * (position.z + t*0.75)));
+                displacement += (1.0/32.0) * snoise(vec3(4.0 * (position.x + t*1.0),    8.0  * (position.y - t*0.75),   4.0 * (position.z + t*0.75)));
+                displacement += (1.0/64.0) * snoise(vec3(8.0 * (position.x + t*1.0),    16.0  * (position.y - t*1.0),   8.0 * (position.z + t*1.0)));
+                displacement += (1.0/128.0) * snoise(vec3(16.0 * (position.x + t*1.5),  32.0  * (position.y - t*1.0),   16.0 * (position.z + t*1.0)));
+                displacement += (1.0/256.0) * snoise(vec3(32.0 * (position.x + t*1.5),  64.0  * (position.y - t*1.5),   32.0 * (position.z + t*1.0)));
+                displacement += (1.0/512.0) * snoise(vec3(64.0 * (position.x + t*1.5),  128.0  * (position.y - t*1.5),  64.0 * (position.z + t*1.5)));
+                displacement += (1.0/1024.0) * snoise(vec3(128.0 * (position.x + t*1.5),256.0  * (position.y - t*1.5),  128.0 * (position.z + t*1.5)));
 
                 // move the position along the normal and transform it
                 vec3 newPosition = position + normal * displacement;
 
-                newPosition.y *= (1.5);
+                newPosition.y *= (1.5+flames*0.3);
 
-                newPosition.x *= smoothsteps(6.0, -2.0, newPosition.y);
-                newPosition.z *= smoothsteps(6.0, -2.0, newPosition.y);
+                newPosition.x *= smoothsteps(6.0+flames, -2.0-flames, newPosition.y);
+                newPosition.z *= smoothsteps(6.0+flames, -2.0-flames, newPosition.y);
 
                 st = newPosition;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );   
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
             }
         </script>
 
@@ -325,12 +329,14 @@
                 float n = 0.0;
                 n += (1.0/1.0)      * abs(snoise(vec4(1.0*st.x,     0.25*st.y-1.0*t,    1.0*st.z,   t*0.5)));
                 n += (1.0/2.0)      * abs(snoise(vec4(2.0*st.x,     0.5*st.y-1.0*t,     2.0*st.z,   t*0.5)));
-                n += (1.0/4.0)      * abs(snoise(vec4(4.0*st.x,     0.75*st.y-1.0*t,    4.0*st.z,   t*0.5)));
-                n += (1.0/8.0)      * abs(snoise(vec4(8.0*st.x,     1.0*st.y-1.0*t,     8.0*st.z,   t*0.5)));
-                n += (1.0/16.0)     * abs(snoise(vec4(16.0*st.x,    2.0*st.y-2.0*t,     16.0*st.z,  t*0.5)));
-                n += (1.0/32.0)     * abs(snoise(vec4(32.0*st.x,    3.0*st.y-3.0*t,     32.0*st.z,  t*0.5)));
-                n += (1.0/64.0)     * abs(snoise(vec4(64.0*st.x,    4.0*st.y-3.0*t,     64.0*st.z,  t*0.5)));
-                n += (1.0/128.0)    * abs(snoise(vec4(128.0*st.x,   5.0*st.y-3.0*t,     128.0*st.z, t*0.5)));
+                n += (1.0/4.0)      * abs(snoise(vec4(4.0*st.x,     0.75*st.y-1.0*t,    4.0*st.z,   t*0.6)));
+                n += (1.0/8.0)      * abs(snoise(vec4(8.0*st.x,     1.0*st.y-1.0*t,     8.0*st.z,   t*0.7)));
+                n += (1.0/16.0)     * abs(snoise(vec4(16.0*st.x,    2.0*st.y-2.0*t,     16.0*st.z,  t*0.8)));
+                n += (1.0/32.0)     * abs(snoise(vec4(32.0*st.x,    3.0*st.y-3.0*t,     32.0*st.z,  t*0.9)));
+                n += (1.0/64.0)     * abs(snoise(vec4(64.0*st.x,    4.0*st.y-4.0*t,     64.0*st.z,  t*1.0)));
+                n += (1.0/128.0)    * abs(snoise(vec4(128.0*st.x,   5.0*st.y-5.0*t,     128.0*st.z, t*1.1)));
+                n += (1.0/256.0)    * abs(snoise(vec4(256.0*st.x,   6.0*st.y-6.0*t,     256.0*st.z, t*1.2)));
+                n += (1.0/512.0)    * abs(snoise(vec4(512.0*st.x,   7.0*st.y-7.0*t,     512.0*st.z, t*1.3)));
 
                 //n *= sqrt(2.0 - st.y+0.5);
                 alpha = (n < 0.3)?0.0:alpha;
@@ -364,199 +370,119 @@
             uniform float time; 
             uniform float flames;
 
-            //
-            // Description : Array and textureless GLSL 2D/3D/4D simplex 
-            //               noise functions.
-            //      Author : Ian McEwan, Ashima Arts.
-            //  Maintainer : ijm
-            //     Lastmod : 20110822 (ijm)
-            //     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
-            //               Distributed under the MIT License. See LICENSE file.
-            //               https://github.com/ashima/webgl-noise
-            // 
-
-            vec3 mod289(vec3 x) {
-            return x - floor(x * (1.0 / 289.0)) * 289.0;
+            vec4 mod289(vec4 x) {
+                return x - floor(x * (1.0 / 289.0)) * 289.0; 
             }
 
-            vec4 mod289(vec4 x) {
-            return x - floor(x * (1.0 / 289.0)) * 289.0;
+            float mod289(float x) {
+                return x - floor(x * (1.0 / 289.0)) * 289.0; 
             }
 
             vec4 permute(vec4 x) {
-            return mod289(((x*34.0)+1.0)*x);
+                return mod289(((x*34.0)+1.0)*x); 
             }
 
-            vec4 taylorInvSqrt(vec4 r)
-            {
-            return 1.79284291400159 - 0.85373472095314 * r;
-            }
-
-            float snoise(vec3 v)
-            { 
-            const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
-            const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
-
-            // First corner
-            vec3 i  = floor(v + dot(v, C.yyy) );
-            vec3 x0 =   v - i + dot(i, C.xxx) ;
-
-            // Other corners
-            vec3 g = step(x0.yzx, x0.xyz);
-            vec3 l = 1.0 - g;
-            vec3 i1 = min( g.xyz, l.zxy );
-            vec3 i2 = max( g.xyz, l.zxy );
-
-            //   x0 = x0 - 0.0 + 0.0 * C.xxx;
-            //   x1 = x0 - i1  + 1.0 * C.xxx;
-            //   x2 = x0 - i2  + 2.0 * C.xxx;
-            //   x3 = x0 - 1.0 + 3.0 * C.xxx;
-            vec3 x1 = x0 - i1 + C.xxx;
-            vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
-            vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
-
-            // Permutations
-            i = mod289(i); 
-            vec4 p = permute( permute( permute( 
-            i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-            + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
-            + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
-
-            // Gradients: 7x7 points over a square, mapped onto an octahedron.
-            // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
-            float n_ = 0.142857142857; // 1.0/7.0
-            vec3  ns = n_ * D.wyz - D.xzx;
-
-            vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
-
-            vec4 x_ = floor(j * ns.z);
-            vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
-
-            vec4 x = x_ *ns.x + ns.yyyy;
-            vec4 y = y_ *ns.x + ns.yyyy;
-            vec4 h = 1.0 - abs(x) - abs(y);
-
-            vec4 b0 = vec4( x.xy, y.xy );
-            vec4 b1 = vec4( x.zw, y.zw );
-
-            //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
-            //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
-            vec4 s0 = floor(b0)*2.0 + 1.0;
-            vec4 s1 = floor(b1)*2.0 + 1.0;
-            vec4 sh = -step(h, vec4(0.0));
-
-            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
-            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
-
-            vec3 p0 = vec3(a0.xy,h.x);
-            vec3 p1 = vec3(a0.zw,h.y);
-            vec3 p2 = vec3(a1.xy,h.z);
-            vec3 p3 = vec3(a1.zw,h.w);
-
-            //Normalise gradients
-            vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-            p0 *= norm.x;
-            p1 *= norm.y;
-            p2 *= norm.z;
-            p3 *= norm.w;
-
-            // Mix final noise value
-            vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-            m = m * m;
-            return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
-                    dot(p2,x2), dot(p3,x3) ) );
-            }
-            //
-            // GLSL implementation of 2D "flow noise" as presented
-            // by Ken Perlin and Fabrice Neyret at Siggraph 2001.
-            // (2D simplex noise with analytic derivatives and
-            // in-plane rotation of generating gradients,
-            // in a fractal sum where higher frequencies are
-            // displaced (advected) by lower frequencies in the
-            // direction of their gradient. For details, please
-            // refer to the 2001 paper "Flow Noise" by Perlin and Neyret.)
-            //
-            // Author: Stefan Gustavson (stefan.gustavson@liu.se)
-            // Distributed under the terms of the MIT license.
-            // See LICENSE file for details.
-            // 
-
-            // Helper constants
-            #define F2 0.366025403
-            #define G2 0.211324865
-            #define K 0.0243902439 // 1/41
-
-            // Permutation polynomial
             float permute(float x) {
-            return mod((34.0 * x + 1.0)*x, 289.0);
+                return mod289(((x*34.0)+1.0)*x);
             }
 
-            // Gradient mapping with an extra rotation.
-            vec2 grad2(vec2 p, float rot) {
-            #if 1
-            // Map from a line to a diamond such that a shift maps to a rotation.
-            float u = permute(permute(p.x) + p.y) * K + rot; // Rotate by shift
-            u = 4.0 * fract(u) - 2.0;
-            return vec2(abs(u)-1.0, abs(abs(u+1.0)-2.0)-1.0);
-            #else
-            #define TWOPI 6.28318530718
-            // For more isotropic gradients, sin/cos can be used instead.
-            float u = permute(permute(p.x) + p.y) * K + rot; // Rotate by shift
-            u = fract(u) * TWOPI;
-            return vec2(cos(u), sin(u));
-            #endif
+            vec4 taylorInvSqrt(vec4 r) {
+                return 1.79284291400159 - 0.85373472095314 * r;
             }
 
-            float srdnoise(in vec2 P, in float rot, out vec2 grad) {
+            float taylorInvSqrt(float r) {
+                return 1.79284291400159 - 0.85373472095314 * r;
+            }
 
-            // Transform input point to the skewed simplex grid
-            vec2 Ps = P + dot(P, vec2(F2));
+            vec4 grad4(float j, vec4 ip) {
+            const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);
+            vec4 p,s;
 
-            // Round down to simplex origin
-            vec2 Pi = floor(Ps);
+            p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;
+            p.w = 1.5 - dot(abs(p.xyz), ones.xyz);
+            s = vec4(lessThan(p, vec4(0.0)));
+            p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www; 
 
-            // Transform simplex origin back to (x,y) system
-            vec2 P0 = Pi - dot(Pi, vec2(G2));
+            return p;
+            }
 
-            // Find (x,y) offsets from simplex origin to first corner
-            vec2 v0 = P - P0;
+            // (sqrt(5) - 1)/4 = F4, used once below
+            #define F4 0.309016994374947451
 
-            // Pick (+x, +y) or (+y, +x) increment sequence
-            vec2 i1 = (v0.x > v0.y) ? vec2(1.0, 0.0) : vec2 (0.0, 1.0);
+            float snoise(vec4 v) {
+                const vec4  C = vec4( 0.138196601125011,  // (5 - sqrt(5))/20  G4
+                0.276393202250021,  // 2 * G4
+                0.414589803375032,  // 3 * G4
+                -0.447213595499958); // -1 + 4 * G4
 
-            // Determine the offsets for the other two corners
-            vec2 v1 = v0 - i1 + G2;
-            vec2 v2 = v0 - 1.0 + 2.0 * G2;
+                // First corner
+                vec4 i  = floor(v + dot(v, vec4(F4)) );
+                vec4 x0 = v -   i + dot(i, C.xxxx);
 
-            // Wrap coordinates at 289 to avoid float precision problems
-            Pi = mod(Pi, 289.0);
+                // Other corners
 
-            // Calculate the circularly symmetric part of each noise wiggle
-            vec3 t = max(0.5 - vec3(dot(v0,v0), dot(v1,v1), dot(v2,v2)), 0.0);
-            vec3 t2 = t*t;
-            vec3 t4 = t2*t2;
+                // Rank sorting originally contributed by Bill Licea-Kane, AMD (formerly ATI)
+                vec4 i0;
+                vec3 isX = step( x0.yzw, x0.xxx );
+                vec3 isYZ = step( x0.zww, x0.yyz );
+                //  i0.x = dot( isX, vec3( 1.0 ) );
+                i0.x = isX.x + isX.y + isX.z;
+                i0.yzw = 1.0 - isX;
+                //  i0.y += dot( isYZ.xy, vec2( 1.0 ) );
+                i0.y += isYZ.x + isYZ.y;
+                i0.zw += 1.0 - isYZ.xy;
+                i0.z += isYZ.z;
+                i0.w += 1.0 - isYZ.z;
 
-            // Calculate the gradients for the three corners
-            vec2 g0 = grad2(Pi, rot);
-            vec2 g1 = grad2(Pi + i1, rot);
-            vec2 g2 = grad2(Pi + 1.0, rot);
+                // i0 now contains the unique values 0,1,2,3 in each channel
+                vec4 i3 = clamp( i0, 0.0, 1.0 );
+                vec4 i2 = clamp( i0-1.0, 0.0, 1.0 );
+                vec4 i1 = clamp( i0-2.0, 0.0, 1.0 );
 
-            // Compute noise contributions from each corner
-            vec3 gv = vec3(dot(g0,v0), dot(g1,v1), dot(g2,v2)); // ramp: g dot v
-            vec3 n = t4 * gv;  // Circular kernel times linear ramp
+                //  x0 = x0 - 0.0 + 0.0 * C.xxxx
+                //  x1 = x0 - i1  + 1.0 * C.xxxx
+                //  x2 = x0 - i2  + 2.0 * C.xxxx
+                //  x3 = x0 - i3  + 3.0 * C.xxxx
+                //  x4 = x0 - 1.0 + 4.0 * C.xxxx
+                vec4 x1 = x0 - i1 + C.xxxx;
+                vec4 x2 = x0 - i2 + C.yyyy;
+                vec4 x3 = x0 - i3 + C.zzzz;
+                vec4 x4 = x0 + C.wwww;
 
-            // Compute partial derivatives in x and y
-            vec3 temp = t2 * t * gv;
-            vec3 gradx = temp * vec3(v0.x, v1.x, v2.x);
-            vec3 grady = temp * vec3(v0.y, v1.y, v2.y);
-            grad.x = -8.0 * (gradx.x + gradx.y + gradx.z);
-            grad.y = -8.0 * (grady.x + grady.y + grady.z);
-            grad.x += dot(t4, vec3(g0.x, g1.x, g2.x));
-            grad.y += dot(t4, vec3(g0.y, g1.y, g2.y));
-            grad *= 40.0;
+                // Permutations
+                i = mod289(i); 
+                float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);
+                vec4 j1 = permute( permute( permute( permute (
+                i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))
+                + i.z + vec4(i1.z, i2.z, i3.z, 1.0 ))
+                + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))
+                + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));
 
-            // Add contributions from the three corners and return
-            return 40.0 * (n.x + n.y + n.z);
+                // Gradients: 7x7x6 points over a cube, mapped onto a 4-cross polytope
+                // 7*7*6 = 294, which is close to the ring size 17*17 = 289.
+                vec4 ip = vec4(1.0/294.0, 1.0/49.0, 1.0/7.0, 0.0) ;
+
+                vec4 p0 = grad4(j0,   ip);
+                vec4 p1 = grad4(j1.x, ip);
+                vec4 p2 = grad4(j1.y, ip);
+                vec4 p3 = grad4(j1.z, ip);
+                vec4 p4 = grad4(j1.w, ip);
+
+                // Normalise gradients
+                vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                p0 *= norm.x;
+                p1 *= norm.y;
+                p2 *= norm.z;
+                p3 *= norm.w;
+                p4 *= taylorInvSqrt(dot(p4,p4));
+
+                // Mix contributions from the five corners
+                vec3 m0 = max(0.6 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0);
+                vec2 m1 = max(0.6 - vec2(dot(x3,x3), dot(x4,x4)            ), 0.0);
+                m0 = m0 * m0;
+                m1 = m1 * m1;
+                return 49.0 * ( dot(m0*m0, vec3( dot( p0, x0 ), dot( p1, x1 ), dot( p2, x2 )))
+                + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
             }  
 
             float clamps(float value, float minValue, float maxValue) {
@@ -569,21 +495,27 @@
 
             void main() {
                 float t = time;
-                float alpha = 0.1;
+                float alpha = 0.3;
                 vec2 gradient;
 
                 float n = 0.0;
+                n += (1.0/1.0)      * abs(snoise(vec4(1.0*st.x,     0.25*st.y-1.0*t,    1.0*st.z,   t*0.5)));
+                n += (1.0/2.0)      * abs(snoise(vec4(2.0*st.x,     0.5*st.y-1.0*t,     2.0*st.z,   t*0.5)));
+                n += (1.0/4.0)      * abs(snoise(vec4(4.0*st.x,     0.75*st.y-1.0*t,    4.0*st.z,   t*0.6)));
+                n += (1.0/8.0)      * abs(snoise(vec4(8.0*st.x,     1.0*st.y-1.0*t,     8.0*st.z,   t*0.7)));
+                n += (1.0/16.0)     * abs(snoise(vec4(16.0*st.x,    2.0*st.y-2.0*t,     16.0*st.z,  t*0.8)));
+                n += (1.0/32.0)     * abs(snoise(vec4(32.0*st.x,    3.0*st.y-3.0*t,     32.0*st.z,  t*0.9)));
+                n += (1.0/64.0)     * abs(snoise(vec4(64.0*st.x,    4.0*st.y-4.0*t,     64.0*st.z,  t*1.0)));
+                n += (1.0/128.0)    * abs(snoise(vec4(128.0*st.x,   5.0*st.y-5.0*t,     128.0*st.z, t*1.1)));
+                n += (1.0/256.0)    * abs(snoise(vec4(256.0*st.x,   6.0*st.y-6.0*t,     256.0*st.z, t*1.2)));
+                n += (1.0/512.0)    * abs(snoise(vec4(512.0*st.x,   7.0*st.y-7.0*t,     512.0*st.z, t*1.3)));
 
-                n +=  (1.0/1.0) * snoise(vec3(1.0*st.x,     1.0*(st.y-1.0*t),   1.0*st.z) );
-                n +=  (1.0/2.0) * snoise(vec3(2.0*st.x,     2.0*(st.y-1.0*t),   2.0*st.z) );
-                n +=  (1.0/4.0) * snoise(vec3(4.0*st.x,     4.0*(st.y-1.0*t),   4.0*st.z) );
-                n +=  (1.0/8.0) * snoise(vec3(8.0*st.x,     8.0*(st.y-1.0*t),   8.0*st.z) );
-                n +=  (1.0/16.0) * snoise(vec3(16.0*st.x,   16.0*(st.y-1.0*t),  16.0*st.z) );
-                n +=  (1.0/32.0) * snoise(vec3(32.0*st.x,   32.0*(st.y-1.0*t),  32.0*st.z) );
-                n +=  (1.0/64.0) * snoise(vec3(64.0*st.x,   64.0*(st.y-1.0*t),  64.0*st.z) );
-                n +=  (1.0/128.0) * snoise(vec3(128.0*st.x, 128.0*(st.y-1.0*t), 128.0*st.z) );
+                //
+                //n *= cos(srdnoise(vec2(1.0*st.x, 1.0*st.y), 0.1*t, gradient))*2.0;
 
-                n *= cos(st.x*srdnoise(vec2(1.0*st.x, 1.0*st.y), 0.1*t, gradient)*5.0);
+                // 
+                n *= smoothsteps(-10.0, 10.0, st.x) * smoothsteps(10.0, -10.0, st.x);
+
 
                 gl_FragColor = vec4(n,n,n, alpha);
             }
@@ -814,6 +746,8 @@
             var scene, camera, renderer, fireballs = [], planes = [], uniform, controls;
             var container, stats;
 
+            var clock = new THREE.Clock();
+
             init();
             animate();
 
@@ -838,7 +772,7 @@
                  */
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera( 60, $('#fireball').width() / $('#fireball').height(), 1, 1000);
-                camera.position.z = 20;
+                camera.position.z = 25;
 
                 renderer = new THREE.WebGLRenderer();
                 renderer.setPixelRatio( $('#fireball').devicePixelRatio );
@@ -858,7 +792,7 @@
                 */
                 uniform = {
                     time:   { type: "f", value: 1.0 },
-                    flames: { type: "f", value: 0.0 }
+                    flames: { type: "f", value: 0.0 },
                 }
 
                 /* 
@@ -889,24 +823,21 @@
                     vertexShader:   document.getElementById('fireVertexshader').innerHTML,
                     fragmentShader: document.getElementById('fireFragmentshader').innerHTML,
                     transparent: true,
-                    blending: THREE['AdditiveBlending'],
-                    //depthTest: false,
+                    blending: THREE['AdditiveBlending']
                   });
 
                 for(var i = 2.8; i < 3.2; i+=0.1) {
                     var geometryFireball = new THREE.SphereGeometry( i, 150, 150);
                     var fireball = new THREE.Mesh(geometryFireball, fireMaterial);
-                    fireball.position.x = 0;
-                    fireball.position.y = -0.5;
-                    fireball.position.z = 0;
                     scene.add( fireball );
-                    fireballs.push(fireball);
+                    fireballs.push( fireball );
                 }
                 
 
                 /*
                 *   Cylinders WITH SMOKE
                 */
+
                 var smokeShader =
                   new THREE.ShaderMaterial({
                     uniforms: uniform,
@@ -918,14 +849,12 @@
                     blending: THREE['AdditiveBlending']
                   });
 
-                for(var i = 0; i < 3; i++){
-                    var planeGeometry1 = new THREE.BoxGeometry( 8, 15, 0.01 );
+                for(var i = 2.0; i < 3.2; i += 0.2){
+                    var planeGeometry1 = new THREE.CylinderGeometry( 0.0, i, 20, 100);
                     plane = new THREE.Mesh( planeGeometry1, smokeShader );
-                    plane.rotation.y = i;
-                    plane.position.y = 5;
+                    plane.position.y = 10;
                     scene.add( plane );
                     planes.push( plane );
-
                 }
 
                 /*
@@ -957,8 +886,14 @@
             function render() {
                 stats.begin();
 
-                uniform.time.value += 0.03;
-                uniform.flames.value = parseFloat(document.getElementById("flames").value).toFixed(2);
+                uniform.time.value += clock.getDelta();
+                if(uniform.flames.value != parseFloat(document.getElementById("flames").value).toFixed(2)) {
+                    uniform.flames.value = parseFloat(document.getElementById("flames").value).toFixed(2);
+
+                    for(var i = 0; i < fireballs.length; i++){
+                        fireballs[i].position.y = uniform.flames.value;
+                    } 
+                };
 
                 renderer.render( scene, camera );
                 stats.end();
