@@ -17,21 +17,40 @@
         <script src="stats.min.js"></script>
         <script src="OrbitControls.js"></script>
     </head>
-    <body style="background-color:black; color:white;">
+    <body class="container">
         <div class="row">
-            <div class="col-md-12" style="text-align:center">
+            <div class="col-md-12" style="text-align:center; background-color: lightgray; border-radius: 9px; margin-bottom:10px; margin-top:10px;">
                 <h1>Procedural Fireball</h1>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-4" style="background-color:lightgray; border-radius: 9px; text-align:center; margin-bottom:10px;">
                 <h3>Control Panel</h3>
-                <div style="text-align:center;">
-                    <p>Flames</p>
-                    <input type="range" id="flames" min="0" max="2.0" step="0.01">
-                </div>
+                <p><strong>Intensity</strong></p>
+                <input type="range" id="flames" min="0" max="2.0" step="0.01" value="1">
+                <p><strong>Quality Smoke</strong></p>
+                <input type="range" id="smoke" min="3" max="9" step="3" value="6">
+                <p><strong>Quality Fire</strong></p>
+                <input type="range" id="fire" min="3" max="9" step="3" value="6">
+                <p><strong>NOTE:</strong> If you want to go with high quality you need to have a good computer, else the browers will crash!</p>
             </div>
-            <div class="col-md-10" id="fireball" style="height:640; width:640;">
+            <div class="col-md-8" id="fireball" style="height:640;border-color:lightgray; border-radius: 9px; float:right; margin-bottom:10px;">
+            </div>
+
+            <div class="col-md-4" style="background-color:lightgray; border-radius: 9px; margin-top:10px;">
+                <h3 style="text-align:center">About</h3>
+                <p>Utinam incorrupte vim no, ubique ancillae pri in, mea no tamquam fabulas delenit. Quo insolens quaestio ex, ex has enim minim fierent. Soleat volumus posidonium sit ut, cu putent menandri periculis vis. No pri debet sanctus indoctum, aeterno voluptaria per ex.
+
+Vim ad insolens persecuti. Id exerci eruditi scripserit vim, omnis option vituperata an sit. Affert abhorreant quo ad. Cibo splendide ius ex, mel oblique iudicabit eu. Ponderum gubergren omittantur pro te. Wisi populo dolorum ut sit, eam duis recteque efficiendi te.
+
+Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur eos. Ea vel harum postulant necessitatibus, nec an pericula erroribus, te eam primis sapientem deseruisse.
+
+      </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" style="background-color:lightgray; border-radius: 9px; padding-top:5px; padding-bottom:5px; text-align:center; font-weight:bold;">
+                <p>Hannes Ingelhag, hanin602@student.liu.se, Ingelhag @ Github</p>
             </div>
         </div>
 
@@ -743,8 +762,12 @@
         </script>
 
         <script>
-            var scene, camera, renderer, fireballs = [], planes = [], uniform, controls;
-            var container, stats;
+            var scene, camera, renderer, fireballs = [], planes = [], uniform, controls, geometry;
+            var container;
+            var qualitySmoke = 6, qualityFire = 6;
+
+            var stats = new Stats();
+            stats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
 
             var clock = new THREE.Clock();
 
@@ -753,26 +776,23 @@
 
             function init() {
 
-                stats = new Stats();
-                stats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
-
                 // align top-left
                 stats.domElement.style.position = 'absolute';
-                stats.domElement.style.left = '0px';
-                stats.domElement.style.top = '0px';
+                stats.domElement.style.left = '40px';
+                stats.domElement.style.top = '10px';
 
 
                 container = document.createElement( 'div' );
                 var fireballWindow = document.getElementById('fireball');
                 fireballWindow.appendChild( container );
-                document.body.appendChild( stats.domElement ); 
+                fireballWindow.appendChild( stats.domElement ); 
 
                 /*
                  * Create the scene and set spec.
                  */
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera( 60, $('#fireball').width() / $('#fireball').height(), 1, 1000);
-                camera.position.z = 25;
+                camera.position.z = 15;
 
                 renderer = new THREE.WebGLRenderer();
                 renderer.setPixelRatio( $('#fireball').devicePixelRatio );
@@ -795,10 +815,12 @@
                     flames: { type: "f", value: 0.0 },
                 }
 
+                console.log("1");
                 /* 
                  *   Create a inner sphere
                  */
-                var geometry = new THREE.SphereGeometry( 2.8, 500, 500 );
+                geometry = new THREE.SphereGeometry( 2.8, 150, 150 );
+                console.log("1.1");
                 // Set material for the inner sphere
                 var shaderMaterial =
                   new THREE.ShaderMaterial({
@@ -807,11 +829,15 @@
                     fragmentShader: document.getElementById('ballFragmentshader').innerHTML,
                     blending: THREE['AdditiveBlending']
                   });
+                console.log("1.3");
                 var innerBall = new THREE.Mesh(geometry, shaderMaterial);
                 innerBall.position.x = 0;
                 innerBall.position.y = -2;
                 innerBall.position.z = 0;
+                console.log("1.4");
                 scene.add( innerBall );
+
+                console.log("2");
 
                 /* 
                  *   Create a burning sphere
@@ -826,8 +852,11 @@
                     blending: THREE['AdditiveBlending']
                   });
 
-                for(var i = 2.8; i < 3.2; i+=0.1) {
-                    var geometryFireball = new THREE.SphereGeometry( i, 150, 150);
+
+                console.log("3");
+
+                for(var i = 3 - (qualityFire/20); i < 3 + (qualityFire/20); i+=0.1) {
+                    var geometryFireball = new THREE.SphereGeometry( i, 30*qualityFire, 20*qualityFire);
                     var fireball = new THREE.Mesh(geometryFireball, fireMaterial);
                     scene.add( fireball );
                     fireballs.push( fireball );
@@ -849,13 +878,15 @@
                     blending: THREE['AdditiveBlending']
                   });
 
-                for(var i = 2.0; i < 3.2; i += 0.2){
+                for(var i = 2.6 - (qualitySmoke/10); i < 2.6 + (qualitySmoke/10); i += 0.2){
                     var planeGeometry1 = new THREE.CylinderGeometry( 0.0, i, 20, 100);
                     plane = new THREE.Mesh( planeGeometry1, smokeShader );
                     plane.position.y = 10;
                     scene.add( plane );
                     planes.push( plane );
                 }
+
+                console.log("4");
 
                 /*
                 *   LIGHTS
@@ -867,6 +898,9 @@
                 pointLight = new THREE.PointLight( 0x6b7a82, 0.5, 100 );
                 pointLight.position.set( 20, 20, 30 );
                 scene.add( pointLight );
+
+
+                console.log("5");
 
             };
 
@@ -898,6 +932,26 @@
                 renderer.render( scene, camera );
                 stats.end();
             }
+
+            $('#fire').on("change", function() {
+                qualityFire = $(this).val();
+                $('#fireball').empty();
+                for( var i = scene.children.length - 1; i >= 0; i--) {
+                    scene.children[i].remove();
+                }
+                init();
+                animate();
+            });
+
+            $('#smoke').on("change", function() {
+                qualitySmoke = $(this).val();
+                $('#fireball').empty();
+                for( var i = scene.children.length - 1; i >= 0; i--) {
+                    scene.children[i].remove();
+                }
+                init();
+                animate();
+            });
         </script>
     </body>
 </html>
