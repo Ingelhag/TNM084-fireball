@@ -29,9 +29,9 @@
                 <p><strong>Intensity</strong></p>
                 <input type="range" id="flames" min="0" max="2.0" step="0.01" value="1">
                 <p><strong>Quality Smoke</strong></p>
-                <input type="range" id="smoke" min="3" max="9" step="3" value="6">
+                <input type="range" id="smoke" min="3" max="9" step="3" value="3">
                 <p><strong>Quality Fire</strong></p>
-                <input type="range" id="fire" min="3" max="9" step="3" value="6">
+                <input type="range" id="fire" min="3" max="9" step="3" value="3">
                 <p><strong>NOTE:</strong> If you want to go with high quality you need to have a good computer, else the browers will crash!</p>
             </div>
             <div class="col-md-8" id="fireball" style="height:640;border-color:lightgray; border-radius: 9px; float:right; margin-bottom:10px;">
@@ -41,11 +41,11 @@
                 <h3 style="text-align:center">About</h3>
                 <p>Utinam incorrupte vim no, ubique ancillae pri in, mea no tamquam fabulas delenit. Quo insolens quaestio ex, ex has enim minim fierent. Soleat volumus posidonium sit ut, cu putent menandri periculis vis. No pri debet sanctus indoctum, aeterno voluptaria per ex.
 
-Vim ad insolens persecuti. Id exerci eruditi scripserit vim, omnis option vituperata an sit. Affert abhorreant quo ad. Cibo splendide ius ex, mel oblique iudicabit eu. Ponderum gubergren omittantur pro te. Wisi populo dolorum ut sit, eam duis recteque efficiendi te.
+                Vim ad insolens persecuti. Id exerci eruditi scripserit vim, omnis option vituperata an sit. Affert abhorreant quo ad. Cibo splendide ius ex, mel oblique iudicabit eu. Ponderum gubergren omittantur pro te. Wisi populo dolorum ut sit, eam duis recteque efficiendi te.
 
-Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur eos. Ea vel harum postulant necessitatibus, nec an pericula erroribus, te eam primis sapientem deseruisse.
+                Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur eos. Ea vel harum postulant necessitatibus, nec an pericula erroribus, te eam primis sapientem deseruisse.
 
-      </p>
+                </p>
             </div>
         </div>
         <div class="row">
@@ -64,6 +64,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
             varying vec3 st;
             uniform float time;
             uniform float flames;
+            uniform float sphereId;
 
             //
             // Description : Array and textureless GLSL 2D/3D/4D simplex 
@@ -181,24 +182,34 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
                 float displacement = 0.0;
                 float t = time;
 
-                displacement += (1.0/2.0) * snoise(vec3(0.25 * (position.x + t*0.5),    0.5  * (position.y - t*0.5),    0.25 * (position.z + t*0.5)));
-                displacement += (1.0/4.0) * snoise(vec3(0.5 * (position.x + t*0.5),     1.0  * (position.y - t*0.5),    0.5 * (position.z + t*0.5)));
-                displacement += (1.0/8.0) * snoise(vec3(1.0 * (position.x + t*0.75),    2.0  * (position.y - t*0.75),   1.0 * (position.z + t*0.75)));
-                displacement += (1.0/16.0) * snoise(vec3(2.0 * (position.x + t*0.75),   4.0  * (position.y - t*0.75),   2.0 * (position.z + t*0.75)));
-                displacement += (1.0/32.0) * snoise(vec3(4.0 * (position.x + t*1.0),    8.0  * (position.y - t*0.75),   4.0 * (position.z + t*0.75)));
-                displacement += (1.0/64.0) * snoise(vec3(8.0 * (position.x + t*1.0),    16.0  * (position.y - t*1.0),   8.0 * (position.z + t*1.0)));
-                displacement += (1.0/128.0) * snoise(vec3(16.0 * (position.x + t*1.5),  32.0  * (position.y - t*1.0),   16.0 * (position.z + t*1.0)));
-                displacement += (1.0/256.0) * snoise(vec3(32.0 * (position.x + t*1.5),  64.0  * (position.y - t*1.5),   32.0 * (position.z + t*1.0)));
-                displacement += (1.0/512.0) * snoise(vec3(64.0 * (position.x + t*1.5),  128.0  * (position.y - t*1.5),  64.0 * (position.z + t*1.5)));
-                displacement += (1.0/1024.0) * snoise(vec3(128.0 * (position.x + t*1.5),256.0  * (position.y - t*1.5),  128.0 * (position.z + t*1.5)));
+                float x = position.x;
+                float y = position.y;
+                float z = position.z;
 
-                // move the position along the normal and transform it
-                vec3 newPosition = position + normal * displacement;
+                vec3 newPosition = position;
 
                 newPosition.y *= (1.5+flames*0.3);
 
                 newPosition.x *= smoothsteps(6.0+flames, -2.0-flames, newPosition.y);
                 newPosition.z *= smoothsteps(6.0+flames, -2.0-flames, newPosition.y);
+
+                displacement += (1.0/2.0) * snoise(vec3(0.25 * (x + t*0.5),    0.5  * (y - t*0.5),    0.25 * (z + t*0.5)));
+                displacement += (1.0/4.0) * snoise(vec3(0.5 * (x + t*0.5),     1.0  * (y - t*0.5),    0.5 * (z + t*0.5)));
+                displacement += (1.0/8.0) * snoise(vec3(1.0 * (x + t*0.75),    2.0  * (y - t*0.75),   1.0 * (z + t*0.75)));
+                displacement += (1.0/16.0) * snoise(vec3(2.0 * (x + t*0.75),   4.0  * (y - t*0.75),   2.0 * (z + t*0.75)));
+                displacement += (1.0/32.0) * snoise(vec3(4.0 * (x + t*1.0),    8.0  * (y - t*0.75),   4.0 * (z + t*0.75)));
+                displacement += (1.0/64.0) * snoise(vec3(8.0 * (x + t*1.0),    16.0  * (y - t*1.0),   8.0 * (z + t*1.0)));
+                displacement += (1.0/128.0) * snoise(vec3(16.0 * (x + t*1.5),  32.0  * (y - t*1.0),   16.0 * (z + t*1.0)));
+                displacement += (1.0/256.0) * snoise(vec3(32.0 * (x + t*1.5),  64.0  * (y - t*1.5),   32.0 * (z + t*1.0)));
+                displacement += (1.0/512.0) * snoise(vec3(64.0 * (x + t*1.5),  128.0  * (y - t*1.5),  64.0 * (z + t*1.5)));
+                displacement += (1.0/1024.0) * snoise(vec3(128.0 * (x + t*1.5), 256.0  * (y - t*1.5),  128.0 * (z + t*1.5)));
+
+                // move the position along the normal and transform it
+                newPosition = newPosition + normal * displacement;
+
+                float h = 0.5*(y+3.0+snoise(vec3(0.0 + 0.5 * t, 0.2 * t, 0.2 * t)));
+                newPosition.x += h*max(0.0, h)*0.1*snoise(vec3(sphereId + 0.0  + 0.5 * t, 0.0, 0.0));
+                newPosition.z += h*max(0.0, h)*0.1*snoise(vec3(sphereId + 43.0 + 0.5 * t, 0.0, 0.0));
 
                 st = newPosition;
                 gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
@@ -343,7 +354,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
 
             void main() {
                 float t = time;
-                float alpha = 0.5;
+                float alpha = 0.4;
 
                 float n = 0.0;
                 n += (1.0/1.0)      * abs(snoise(vec4(1.0*st.x,     0.25*st.y-1.0*t,    1.0*st.z,   t*0.5)));
@@ -372,9 +383,123 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
 
             varying vec3 st;
             uniform float flames;
+            uniform float time;
+
+
+            //
+            // Description : Array and textureless GLSL 2D/3D/4D simplex 
+            //               noise functions.
+            //      Author : Ian McEwan, Ashima Arts.
+            //  Maintainer : ijm
+            //     Lastmod : 20110822 (ijm)
+            //     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
+            //               Distributed under the MIT License. See LICENSE file.
+            //               https://github.com/ashima/webgl-noise
+            // 
+
+            vec3 mod289(vec3 x) {
+            return x - floor(x * (1.0 / 289.0)) * 289.0;
+            }
+
+            vec4 mod289(vec4 x) {
+            return x - floor(x * (1.0 / 289.0)) * 289.0;
+            }
+
+            vec4 permute(vec4 x) {
+            return mod289(((x*34.0)+1.0)*x);
+            }
+
+            vec4 taylorInvSqrt(vec4 r)
+            {
+            return 1.79284291400159 - 0.85373472095314 * r;
+            }
+
+            float snoise(vec3 v)
+            { 
+            const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+            const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+            // First corner
+            vec3 i  = floor(v + dot(v, C.yyy) );
+            vec3 x0 =   v - i + dot(i, C.xxx) ;
+
+            // Other corners
+            vec3 g = step(x0.yzx, x0.xyz);
+            vec3 l = 1.0 - g;
+            vec3 i1 = min( g.xyz, l.zxy );
+            vec3 i2 = max( g.xyz, l.zxy );
+
+            //   x0 = x0 - 0.0 + 0.0 * C.xxx;
+            //   x1 = x0 - i1  + 1.0 * C.xxx;
+            //   x2 = x0 - i2  + 2.0 * C.xxx;
+            //   x3 = x0 - 1.0 + 3.0 * C.xxx;
+            vec3 x1 = x0 - i1 + C.xxx;
+            vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+            vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
+
+            // Permutations
+            i = mod289(i); 
+            vec4 p = permute( permute( permute( 
+            i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+            + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+            + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+            // Gradients: 7x7 points over a square, mapped onto an octahedron.
+            // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
+            float n_ = 0.142857142857; // 1.0/7.0
+            vec3  ns = n_ * D.wyz - D.xzx;
+
+            vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
+
+            vec4 x_ = floor(j * ns.z);
+            vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+
+            vec4 x = x_ *ns.x + ns.yyyy;
+            vec4 y = y_ *ns.x + ns.yyyy;
+            vec4 h = 1.0 - abs(x) - abs(y);
+
+            vec4 b0 = vec4( x.xy, y.xy );
+            vec4 b1 = vec4( x.zw, y.zw );
+
+            //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
+            //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
+            vec4 s0 = floor(b0)*2.0 + 1.0;
+            vec4 s1 = floor(b1)*2.0 + 1.0;
+            vec4 sh = -step(h, vec4(0.0));
+
+            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+            vec3 p0 = vec3(a0.xy,h.x);
+            vec3 p1 = vec3(a0.zw,h.y);
+            vec3 p2 = vec3(a1.xy,h.z);
+            vec3 p3 = vec3(a1.zw,h.w);
+
+            //Normalise gradients
+            vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+            p0 *= norm.x;
+            p1 *= norm.y;
+            p2 *= norm.z;
+            p3 *= norm.w;
+
+            // Mix final noise value
+            vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+            m = m * m;
+            return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+                            dot(p2,x2), dot(p3,x3) ) );
+            }
 
             void main(void) {
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+                float t = time;
+                vec3 newPosition = position;
+
+                float h = 0.5*(position.y+3.0+snoise(vec3(0.0  + 0.5 * t, 0.5 * t, 0.5 * t)));
+
+                newPosition.x += h*max(0.0, h)*0.1*snoise(vec3(0.0  + 0.5 * t, 0.0, 0.0));
+                newPosition.z += h*max(0.0, h)*0.1*snoise(vec3(43.0 + 0.5 * t, 0.0, 0.0));
+
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
                 st = gl_Position.xyz;
             }
         </script>
@@ -388,6 +513,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
             varying vec3 st; // Texcoords
             uniform float time; 
             uniform float flames;
+            uniform float smokeIntensity;
 
             vec4 mod289(vec4 x) {
                 return x - floor(x * (1.0 / 289.0)) * 289.0; 
@@ -514,7 +640,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
 
             void main() {
                 float t = time;
-                float alpha = 0.3;
+                float alpha = 1.0/(smokeIntensity*smokeIntensity);
                 vec2 gradient;
 
                 float n = 0.0;
@@ -529,13 +655,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
                 n += (1.0/256.0)    * abs(snoise(vec4(256.0*st.x,   6.0*st.y-6.0*t,     256.0*st.z, t*1.2)));
                 n += (1.0/512.0)    * abs(snoise(vec4(512.0*st.x,   7.0*st.y-7.0*t,     512.0*st.z, t*1.3)));
 
-                //
-                //n *= cos(srdnoise(vec2(1.0*st.x, 1.0*st.y), 0.1*t, gradient))*2.0;
-
-                // 
                 n *= smoothsteps(-10.0, 10.0, st.x) * smoothsteps(10.0, -10.0, st.x);
-
-
                 gl_FragColor = vec4(n,n,n, alpha);
             }
         </script>
@@ -762,9 +882,9 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
         </script>
 
         <script>
-            var scene, camera, renderer, fireballs = [], planes = [], uniform, controls, geometry;
+            var scene, camera, renderer, fireballs = [], planes = [], uniforms=[], geometry;
             var container;
-            var qualitySmoke = 6, qualityFire = 6;
+            var qualitySmoke = 3, qualityFire = 3;
 
             var stats = new Stats();
             stats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
@@ -772,6 +892,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
             var clock = new THREE.Clock();
 
             init();
+            createScene();
             animate();
 
             function init() {
@@ -798,95 +919,88 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
                 renderer.setPixelRatio( $('#fireball').devicePixelRatio );
                 renderer.setSize( $('#fireball').width(), $('#fireball').height());
                 container.appendChild( renderer.domElement );
+            };
 
-                /*
-                * Set config for the controls
-                */
-                controls = new THREE.OrbitControls( camera, renderer.domElement );
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.25;
-                controls.enableZoom = false;
-
+            function createScene() {
                 /*
                 * Attributes to shaders
                 */
-                uniform = {
-                    time:   { type: "f", value: 1.0 },
-                    flames: { type: "f", value: 0.0 },
+
+                for(var i = 0; i < 9; i++) {
+                    var uniform = {
+                        time:   { type: "f", value: 1.0 },
+                        flames: { type: "f", value: 0.0 },
+                        sphereId: { type: "f", value: i},
+                        smokeIntensity: { type: "f", value: qualitySmoke}
+                    }
+                    uniforms.push(uniform);
                 }
 
-                console.log("1");
+
                 /* 
                  *   Create a inner sphere
                  */
                 geometry = new THREE.SphereGeometry( 2.8, 150, 150 );
-                console.log("1.1");
                 // Set material for the inner sphere
                 var shaderMaterial =
                   new THREE.ShaderMaterial({
-                    uniforms: uniform,
+                    uniforms: uniforms[0],
                     vertexShader:   document.getElementById('ballVertexshader').innerHTML,
                     fragmentShader: document.getElementById('ballFragmentshader').innerHTML,
                     blending: THREE['AdditiveBlending']
                   });
-                console.log("1.3");
                 var innerBall = new THREE.Mesh(geometry, shaderMaterial);
                 innerBall.position.x = 0;
                 innerBall.position.y = -2;
                 innerBall.position.z = 0;
-                console.log("1.4");
                 scene.add( innerBall );
-
-                console.log("2");
 
                 /* 
                  *   Create a burning sphere
                  */
-                //Set material for the burning
-                var fireMaterial =
-                  new THREE.ShaderMaterial({
-                    uniforms: uniform,
-                    vertexShader:   document.getElementById('fireVertexshader').innerHTML,
-                    fragmentShader: document.getElementById('fireFragmentshader').innerHTML,
-                    transparent: true,
-                    blending: THREE['AdditiveBlending']
-                  });
 
+                var sphereRadius = [2.9, 3.0, 3.1, 2.7, 3.3, 2.8, 3.2, 2.6, 3.4, 2.7, 3.3, 3.4];
 
-                console.log("3");
+                for(var i = 0; i < qualityFire; i++) {
+                    var fireMaterial =
+                      new THREE.ShaderMaterial({
+                        uniforms: uniforms[i],
+                        vertexShader:   document.getElementById('fireVertexshader').innerHTML,
+                        fragmentShader: document.getElementById('fireFragmentshader').innerHTML,
+                        transparent: true,
+                        blending: THREE['AdditiveBlending']
+                      });
 
-                for(var i = 3 - (qualityFire/20); i < 3 + (qualityFire/20); i+=0.1) {
-                    var geometryFireball = new THREE.SphereGeometry( i, 30*qualityFire, 20*qualityFire);
+                    var geometryFireball = new THREE.SphereGeometry( sphereRadius[i], 150, 150);
                     var fireball = new THREE.Mesh(geometryFireball, fireMaterial);
                     scene.add( fireball );
                     fireballs.push( fireball );
                 }
-                
 
                 /*
                 *   Cylinders WITH SMOKE
                 */
 
-                var smokeShader =
-                  new THREE.ShaderMaterial({
-                    uniforms: uniform,
-                    vertexShader:   document.getElementById('smokeVertexshader').innerHTML,
-                    fragmentShader: document.getElementById('smokeFragmentshader').innerHTML,
-                    transparent: true,
-                    side: THREE.DoubleSide,
-                    depthWrite: false,
-                    blending: THREE['AdditiveBlending']
-                  });
 
-                for(var i = 2.6 - (qualitySmoke/10); i < 2.6 + (qualitySmoke/10); i += 0.2){
-                    var planeGeometry1 = new THREE.CylinderGeometry( 0.0, i, 20, 100);
+                var cylinderRadius = [2.8, 3.0, 3.2, 2.9, 3.1, 2.8, 2.7, 3.3, 2.7];
+                for(var i = 0; i < qualitySmoke; i++){
+
+                    var smokeShader =
+                        new THREE.ShaderMaterial({
+                            uniforms: uniforms[i],
+                            vertexShader:   document.getElementById('smokeVertexshader').innerHTML,
+                            fragmentShader: document.getElementById('smokeFragmentshader').innerHTML,
+                            transparent: true,
+                            side: THREE.DoubleSide,
+                            depthWrite: false,
+                            blending: THREE['AdditiveBlending']
+                        });
+                    var planeGeometry1 = new THREE.CylinderGeometry( 1.0, cylinderRadius[i], 20, 100);
                     plane = new THREE.Mesh( planeGeometry1, smokeShader );
-                    plane.position.y = 10;
+                    plane.position.y = 8;
                     scene.add( plane );
                     planes.push( plane );
                 }
-
-                console.log("4");
 
                 /*
                 *   LIGHTS
@@ -899,10 +1013,7 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
                 pointLight.position.set( 20, 20, 30 );
                 scene.add( pointLight );
 
-
-                console.log("5");
-
-            };
+            }
 
             function onWindowResize() {
 
@@ -913,21 +1024,26 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
 
             function animate() {
                 requestAnimationFrame( animate );
-                controls.update(); // required if controls.enableDamping = true, or if controls.autoRotate = true
                 render();
             }
 
             function render() {
                 stats.begin();
 
-                uniform.time.value += clock.getDelta();
-                if(uniform.flames.value != parseFloat(document.getElementById("flames").value).toFixed(2)) {
-                    uniform.flames.value = parseFloat(document.getElementById("flames").value).toFixed(2);
+                scene.rotation.y += 0.005;
 
-                    for(var i = 0; i < fireballs.length; i++){
-                        fireballs[i].position.y = uniform.flames.value;
-                    } 
-                };
+                var deltatime =  clock.getDelta();
+                for(var i = 0; i < uniforms.length; i++) {
+                    uniforms[i].time.value += deltatime;
+
+                    if(uniforms[i].flames.value != parseFloat(document.getElementById("flames").value).toFixed(2)) {
+                        uniforms[i].flames.value = parseFloat(document.getElementById("flames").value).toFixed(2);
+                    };
+                }
+
+                for(var i = 0; i < fireballs.length; i++){
+                    fireballs[i].position.y = uniforms[i].flames.value;
+                } 
 
                 renderer.render( scene, camera );
                 stats.end();
@@ -935,21 +1051,19 @@ Ex quo vidit expetendis. Malis summo in has, ex petentium corrumpit appellantur 
 
             $('#fire').on("change", function() {
                 qualityFire = $(this).val();
-                $('#fireball').empty();
                 for( var i = scene.children.length - 1; i >= 0; i--) {
-                    scene.children[i].remove();
+                    scene.remove(scene.children[i]);
                 }
-                init();
+                createScene();
                 animate();
             });
 
             $('#smoke').on("change", function() {
-                qualitySmoke = $(this).val();
-                $('#fireball').empty();
+                qualitySmoke = parseFloat($(this).val());
                 for( var i = scene.children.length - 1; i >= 0; i--) {
-                    scene.children[i].remove();
+                    scene.remove(scene.children[i]);
                 }
-                init();
+                createScene();
                 animate();
             });
         </script>
